@@ -2583,14 +2583,18 @@ trait S extends HasParams with Loggable {
     case _ => true
   }
 
-  def disableTestFuncNames_? : Boolean = _disableTestFuncNames.box openOr false
+  // japgolly
+  // def disableTestFuncNames_? : Boolean = _disableTestFuncNames.box openOr false
+  def disableTestFuncNames_? : Boolean = true
 
   def disableTestFuncNames[T](f: => T): T =
     _disableTestFuncNames.doWith(true) {
       f
     }
 
-  def formFuncName: String = if (Props.testMode && !disableTestFuncNames_?) {
+  // japgolly
+  // def formFuncName: String = if (Props.testMode && !disableTestFuncNames_?) {
+  def formFuncName: String = if (false) {
     val bump: Long = ((_formGroup.is openOr 0) + 1000L) * 100000L
     val num: Int = formItemNumber.is
     formItemNumber.set(num + 1)
