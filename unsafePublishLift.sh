@@ -24,7 +24,7 @@ BUILDLOG=/tmp/Lift-do-release-`date "+%Y%m%d-%H%M%S"`.log
 # 5. git push origin <version>
 # 6. git tag <version>-release
 # 7. git push origin <version>-release
-# 8. LIFTSH_OPTS="-Dpublish.remote=true -Dsbt.log.noformat=true" ./liftsh clean-cache clean-plugins reload +clean-lib +update +clean +publish-signed
+# 8. LIFTSH_OPTS="-Dpublish.remote=true -Dsbt.log.noformat=true" ./liftsh clean-cache clean-plugins reload +clean-lib +update +clean +publish
 # 9. Wait for happiness
 
 SCRIPTVERSION=0.1
@@ -120,8 +120,8 @@ for MODULE in framework ; do
     CURRENT_BRANCH=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
     debug "Current branch for $MODULE is $CURRENT_BRANCH"
 
-    if [ "${CURRENT_BRANCH}" != "master" ]; then
-        echo "Currently releases can only be built from master. $MODULE is on branch $CURRENT_BRANCH. Aborting build."
+    if [ "${CURRENT_BRANCH}" != "2.5.1" ]; then
+        echo "Fixed branch to 2.5.1, master has a different line here. $MODULE is on branch $CURRENT_BRANCH. Aborting build."
         exit
     fi
 
@@ -141,7 +141,8 @@ for MODULE in framework ; do
     echo -e "\nStarting build on $MODULE module"
     cd ${SCRIPT_DIR}/${MODULE} || die "Could not change to $MODULE directory!"
 
-    git checkout -b ${RELEASE_VERSION} >> ${BUILDLOG} || die "Error creating work branch!"
+    #commented out because we are already on the branch that will be used to publish 2.5.1
+    #git checkout -b ${RELEASE_VERSION} >> ${BUILDLOG} || die "Error creating work branch!"
 
 
     ./liftsh ";set version in ThisBuild :=  \"${RELEASE_VERSION}\" ; session save  " >> ${BUILDLOG} || die "Could not update project version in SBT!"
@@ -157,7 +158,7 @@ for MODULE in framework ; do
     # Do a separate build for each configured Scala version so we don't blow the heap
     for SCALA_VERSION in $(grep crossScalaVersions build.sbt | cut -d '(' -f 2 |  sed s/[,\)\"]//g ); do
         echo -n "  Building against Scala ${SCALA_VERSION}..."
-        if ! ./liftsh ++${SCALA_VERSION} clean update test publish-signed >> ${BUILDLOG} ; then
+        if ! ./liftsh ++${SCALA_VERSION} clean update test publish >> ${BUILDLOG} ; then
             echo "failed! See build log for details"
             exit
         fi
